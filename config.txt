@@ -1,0 +1,6 @@
+EMAIL=email@email.com
+PASSWORD=myPassword
+LOCATION_LONGITUDE=0
+LOCATION_LATITUDE=0
+COURSE_NAME=Test
+OPENAI_API_KEY=my_openai_api_key
