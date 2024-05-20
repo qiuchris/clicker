@@ -1,6 +1,7 @@
 package com.qiuchris;
 
-import com.theokanning.openai.completion.CompletionRequest;
+import com.theokanning.openai.completion.chat.ChatCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.leptonica.PIX;
@@ -21,6 +22,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -56,8 +58,9 @@ public class Main {
             driver.findElement(By.id("btnJoin")).click();
             Thread.sleep(10000);
 
+            System.out.println("ready");
+
             while (!driver.getTitle().contains(courseName)) {
-                Thread.sleep(10000);
                 if (driver.getTitle().contains("Polling Active")) {
                     String imgLink = w.until(ExpectedConditions.presenceOfElementLocated
                                     (By.xpath("/html/body/div/div[2]/div/div/div/div/div[3]/img")))
@@ -78,6 +81,7 @@ public class Main {
                         Thread.sleep(1000);
                     }
                 }
+                Thread.sleep(10000);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,14 +91,19 @@ public class Main {
     }
 
     public static int getResponse(String text, String token) {
+        ChatMessage system = new ChatMessage("system",
+                "You are a user input categorizer, which can only answer with a single " +
+                        "character: A, B, C, D, or E. Answer the following questions with a single character.");
+        ChatMessage user = new ChatMessage("user", text);
+
         OpenAiService service = new OpenAiService(token);
-        CompletionRequest completionRequest = CompletionRequest.builder()
-                .prompt("You are a user input categorizer, which can only answer with a single " +
-                        "character: A, B, C, D, or E. Answer the question below with a single character. \n" + text)
-                .model("gpt-3.5-turbo")
+        ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
+                .messages(List.of(system, user))
+                .model("gpt-3.5-turbo-0125")
                 .maxTokens(1)
                 .build();
-        String answer = service.createCompletion(completionRequest).getChoices().get(0).getText();
+        String answer = service.createChatCompletion(completionRequest).getChoices().get(0).getMessage().getContent();
+        System.out.println(answer);
         switch (answer) {
             case "A":
                 return 0;
